@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShieldAuth — Sign In / Sign Up</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Official Google Identity Services (Real Google OAuth 2.0) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px 20px;
+      position: relative;
+    }
+    .auth-page::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 55% 45% at 50% 0%, rgba(255, 255, 255, 0.065), transparent 70%);
+      pointer-events: none;
+    }
+    .auth-shell {
+      position: relative;
+      width: 100%;
+      max-width: 430px;
+      background: var(--bg-1);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-xl);
+      padding: 32px 28px;
+      box-shadow: var(--shadow-lg);
+    }
+    .auth-top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 22px;
+    }
+    .auth-top h1 {
+      margin-top: 16px;
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .auth-top p {
+      margin-top: 6px;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      background: var(--bg-0);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 4px;
+      margin-bottom: 20px;
+    }
+    .auth-tab {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 9px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+    }
+    .auth-tab.active {
+      background: var(--bg-3);
+      color: var(--text-primary);
+    }
+    .auth-form {
+      display: none;
+      gap: 14px;
+    }
+    .auth-form.active {
+      display: grid;
+    }
+    .auth-row-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    .auth-error {
+      display: none;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-strong);
+      font-size: 0.8rem;
+      color: var(--text-primary);
+    }
+    .auth-error.show {
+      display: block;
+    }
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 22px 0 18px;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-subtle);
+    }
+    .btn-google-flat {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 13px 16px;
+      background: #0a0a0c;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 9px;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #ffffff;
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .btn-google-flat:hover {
+      background: #141418;
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+    .auth-footer {
+      margin-top: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .auth-footer a,
+    .auth-footer button {
+      color: var(--text-secondary);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.78rem;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .auth-footer a:hover,
+    .auth-footer button:hover {
+      color: var(--text-primary);
+    }
+    .setup-steps {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+      font-size: 0.81rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .setup-steps code {
+      color: var(--text-primary);
+      background: var(--bg-0);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+      font-size: 0.76rem;
+    }
+  </style>
+</head>
+<body class="bg-grid">
+  <main class="auth-page">
+    <div class="auth-shell">
+      <div class="auth-top">
+        <a href="index.html" class="brand">
+          <img src="logo.png" alt="ShieldAuth" class="brand-logo" style="width:34px;height:34px;" />
+          <span>ShieldAuth</span>
+        </a>
+        <h1 id="authHeading">Sign in to your account</h1>
+        <p id="authSub">Access your applications, licenses, teams, and resellers.</p>
+      </div>
+
+      <!-- Mode Switcher -->
+      <div class="auth-tabs" role="tablist" aria-label="Authentication Mode">
+        <button class="auth-tab active" data-auth-mode="login" role="tab" aria-selected="true">Sign In</button>
+        <button class="auth-tab" data-auth-mode="register" role="tab" aria-selected="false">Sign Up</button>
+      </div>
+
+      <div class="auth-error" id="authError"></div>
+
+      <!-- Manual Sign In Form -->
+      <form class="auth-form active" id="loginForm">
+        <div class="field">
+          <label for="loginEmail">Email Address</label>
+          <input id="loginEmail" class="input" type="email" placeholder="you@company.com" required />
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" class="input" type="password" placeholder="••••••••••••" required />
+        </div>
+        <div class="auth-row-between">
+          <label class="check-label" style="font-size:0.8rem;font-weight:500;color:var(--text-secondary);">
+            <input type="checkbox" class="custom-check" id="rememberMe" checked />
+            <span>Remember me</span>
+          </label>
+          <a href="#" id="forgotPassLink" style="color:var(--text-muted);">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:4px;">Sign In</button>
+      </form>
+
+      <!-- Manual Sign Up Form -->
+      <form class="auth-form" id="registerForm">
+        <div class="field">
+          <label for="regName">Full Name / Username</label>
+          <input id="regName" class="input" type="text" placeholder="Alex Rivera" required />
+        </div>
+        <div class="field">
+          <label for="regEmail">Email Address</label>
+          <input id="regEmail" class="input" type="email" placeholder="you@company.com" required />
+        </div>
+        <div class="field">
+          <label for="regPassword">Password</label>
+          <input id="regPassword" class="input" type="password" minlength="6" placeholder="At least 6 characters" required />
+        </div>
+        <div class="field">
+          <label for="regConfirm">Confirm Password</label>
+          <input id="regConfirm" class="input" type="password" minlength="6" placeholder="Re-enter password" required />
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:4px;">Create Account</button>
+      </form>
+
+      <!-- Exact "or" divider + Real "Continue with Google" button -->
+      <div class="auth-divider">or</div>
+
+      <button type="button" class="btn-google-flat" id="googleAuthBtn">
+        Continue with Google
+      </button>
+
+      <div class="auth-footer" style="justify-content:center;">
+        <a href="index.html">&larr; Back to ShieldAuth home</a>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const HARDCODED_GOOGLE_CLIENT_ID = '862215164102-s3q64n8n1bdcuh0ddcih2j4lbhhutk8h.apps.googleusercontent.com';
+
+      const ACCOUNTS_KEY = 'shieldauth_accounts_v1';
+      const SESSION_KEY = 'shieldauth_session_v1';
+
+      const tabs = document.querySelectorAll('.auth-tab');
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const heading = document.getElementById('authHeading');
+      const sub = document.getElementById('authSub');
+      const errorBox = document.getElementById('authError');
+      const toastEl = document.getElementById('toast');
+
+      function showToast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        setTimeout(() => toastEl.classList.remove('show'), 2600);
+      }
+
+      function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.classList.add('show');
+      }
+
+      function clearError() {
+        errorBox.textContent = '';
+        errorBox.classList.remove('show');
+      }
+
+      function getAccounts() {
+        try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '[]'); }
+        catch { return []; }
+      }
+
+      function saveSession(profile) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify({
+          ...profile,
+          signedInAt: new Date().toISOString()
+        }));
+      }
+
+      function setMode(mode) {
+        clearError();
+        const isReg = mode === 'register';
+        tabs.forEach((t) => {
+          const active = t.dataset.authMode === mode;
+          t.classList.toggle('active', active);
+          t.setAttribute('aria-selected', String(active));
+        });
+        loginForm.classList.toggle('active', !isReg);
+        registerForm.classList.toggle('active', isReg);
+        heading.textContent = isReg ? 'Create your ShieldAuth account' : 'Sign in to your account';
+        sub.textContent = isReg
+          ? 'Start free with licenses, HWID locks, teams, and resellers.'
+          : 'Access your applications, licenses, teams, and resellers.';
+      }
+
+      tabs.forEach((t) => t.addEventListener('click', () => setMode(t.dataset.authMode)));
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('mode') === 'register') setMode('register');
+      if (params.get('next') === 'dashboard') {
+        showError('Please sign in to access your ShieldAuth dashboard.');
+      }
+
+      // Manual Sign In
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        clearError();
+        const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+        const password = document.getElementById('loginPassword').value;
+        const accounts = getAccounts();
+        const existing = accounts.find((a) => a.email === email);
+
+        if (!existing) {
+          showError('No account found for this email. Switch to Sign Up to create one.');
+          return;
+        }
+
+        if (existing.password !== password) {
+          showError('Incorrect password for this account.');
+          return;
+        }
+
+        saveSession({ name: existing.name, email: existing.email, provider: 'email' });
+        window.location.href = 'dashboard.html';
+      });
+
+      // Manual Sign Up
+      registerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        clearError();
+        const name = document.getElementById('regName').value.trim();
+        const email = document.getElementById('regEmail').value.trim().toLowerCase();
+        const password = document.getElementById('regPassword').value;
+        const confirm = document.getElementById('regConfirm').value;
+
+        if (password !== confirm) {
+          showError('Passwords do not match.');
+          return;
+        }
+
+        const accounts = getAccounts();
+        if (accounts.some((a) => a.email === email)) {
+          showError('An account with this email already exists. Please sign in.');
+          return;
+        }
+
+        accounts.push({ name, email, password, provider: 'email' });
+        localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+        saveSession({ name, email, provider: 'email' });
+        window.location.href = 'dashboard.html';
+      });
+
+      document.getElementById('forgotPassLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        showToast('Password reset link sent if account exists');
+      });
+
+      // Launch Real Google OAuth 2.0 Popup (accounts.google.com)
+      document.getElementById('googleAuthBtn').addEventListener('click', () => {
+        clearError();
+        if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+          showError('Google Sign-In SDK is still loading. Please try again in a moment.');
+          return;
+        }
+
+        const tokenClient = window.google.accounts.oauth2.initTokenClient({
+          client_id: HARDCODED_GOOGLE_CLIENT_ID,
+          scope: 'openid email profile',
+          prompt: 'select_account',
+          callback: async (resp) => {
+            if (!resp || resp.error || !resp.access_token) {
+              showError(`Google sign-in canceled or failed${resp && resp.error ? `: ${resp.error}` : '.'}`);
+              return;
+            }
+            try {
+              const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${resp.access_token}` }
+              }).then((r) => r.json());
+
+              if (!info || !info.email) {
+                showError('Could not retrieve Google profile email.');
+                return;
+              }
+
+              saveSession({
+                name: info.name || info.email.split('@')[0],
+                email: info.email,
+                picture: info.picture || '',
+                provider: 'google'
+              });
+              window.location.href = 'dashboard.html';
+            } catch {
+              showError('Failed to fetch Google account info.');
+            }
+          }
+        });
+
+        tokenClient.requestAccessToken();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShieldAuth Console — Developer Dashboard</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <script>
+    (function () {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var inv = params.get('invite');
+        if (inv) {
+          sessionStorage.setItem('shieldauth_pending_invite_token', inv);
+        }
+        var s = JSON.parse(localStorage.getItem('shieldauth_session_v1') || 'null');
+        if (!s || !s.email) {
+          window.location.replace('auth.html?mode=login&next=dashboard');
+        }
+      } catch (e) {
+        window.location.replace('auth.html?mode=login&next=dashboard');
+      }
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="dash-layout">
+    <!-- Sidebar -->
+    <aside class="dash-sidebar">
+      <a href="index.html" class="brand">
+        <img src="logo.png" alt="ShieldAuth" class="brand-logo" />
+        <span>ShieldAuth</span>
+      </a>
+
+      <div class="dash-app-pill" id="sidebarAppPill" style="cursor:pointer;" title="Switch or manage applications">
+        <small>Active Application</small>
+        <strong>
+          <span id="sidebarAppName">CoreSuite Pro</span>
+          <span class="status-dot" title="Online"></span>
+        </strong>
+      </div>
+
+      <nav class="dash-nav" aria-label="Dashboard Navigation">
+        <button class="dash-nav-btn active" data-panel="overview">Overview</button>
+        <button class="dash-nav-btn" data-panel="apps">My Applications</button>
+        <button class="dash-nav-btn" data-panel="licenses">Licenses</button>
+        <button class="dash-nav-btn" data-panel="team-licenses" id="navTeamLicenses">Team Licenses</button>
+        <button class="dash-nav-btn" data-panel="users">Users &amp; HWIDs</button>
+        <button class="dash-nav-btn" data-panel="teams">Teams</button>
+        <button class="dash-nav-btn" data-panel="resellers">Resellers</button>
+        <button class="dash-nav-btn" data-panel="variables">Cloud Vars &amp; Files</button>
+        <button class="dash-nav-btn" data-panel="security">Security &amp; Blacklist</button>
+        <button class="dash-nav-btn" data-panel="webhooks">Webhooks</button>
+        <button class="dash-nav-btn" data-panel="settings">App Settings</button>
+      </nav>
+
+      <div style="margin-top:auto;padding-top:16px;border-top:1px solid var(--border-subtle);display:grid;gap:8px;">
+        <div style="font-size:0.75rem;color:var(--text-muted);padding:0 4px;" id="signedInAccount">Not signed in</div>
+        <a href="auth.html?mode=login" class="btn btn-ghost btn-sm" id="signOutBtn" style="width:100%;">Sign Out / Switch</a>
+        <a href="index.html" class="btn btn-secondary btn-sm" style="width:100%;">Back to Website</a>
+      </div>
+    </aside>
+
+    <!-- Main Area -->
+    <main class="dash-main">
+      <header class="dash-topbar">
+        <div>
+          <strong id="panelTitle" style="font-size:1rem;">Overview</strong>
+          <span class="mono" style="margin-left:10px;font-size:0.75rem;color:var(--text-muted);" id="topAppId">No App</span>
+        </div>
+      </header>
+
+      <div class="dash-content">
+        <!-- Active Application Required Banner -->
+        <div class="no-app-banner" id="noAppBanner" role="status">
+          <div>
+            <strong id="noAppBannerTitle">Active application required</strong>
+            <span id="noAppBannerDesc">Create or select an active application before managing licenses, users, variables, or security.</span>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" id="noAppBannerBtn">+ Create Application</button>
+        </div>
+
+        <!-- OVERVIEW PANEL -->
+        <section class="dash-panel active" id="panel-overview">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span>Total Licenses</span>
+              <strong id="kpiLicenses">0</strong>
+              <small>Active + Unused pool</small>
+            </div>
+            <div class="kpi-card">
+              <span>Registered Users</span>
+              <strong id="kpiUsers">0</strong>
+              <small>HWID-bound seats</small>
+            </div>
+            <div class="kpi-card">
+              <span>Cloud Variables</span>
+              <strong id="kpiVars">0</strong>
+              <small>Encrypted AES-256-GCM</small>
+            </div>
+            <div class="kpi-card">
+              <span>Blocked Entities</span>
+              <strong id="kpiBlocked">0</strong>
+              <small>IP / HWID blacklist</small>
+            </div>
+          </div>
+
+          <div class="surface-card">
+            <div class="surface-head">
+              <h3>14-Day Edge Authentications</h3>
+              <span class="mono" style="font-size:0.75rem;color:var(--text-muted);" id="authChartMeta">0 verifications</span>
+            </div>
+            <div class="chart-bars" id="authChart"></div>
+          </div>
+
+          <div class="surface-card">
+            <div class="surface-head">
+              <h3>Live Audit Trail</h3>
+              <button class="btn btn-secondary btn-sm" id="clearLogsBtn">Clear Feed</button>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Event</th>
+                    <th>Actor / Key</th>
+                    <th>Edge PoP</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="auditBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- MY APPLICATIONS PANEL -->
+        <section class="dash-panel" id="panel-apps">
+          <div class="apps-header-row">
+            <h2>My Applications</h2>
+            <div class="apps-search-wrap">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="appsSearchInput" class="input" type="text" placeholder="Search applications..." />
+            </div>
+          </div>
+
+          <div class="apps-controls">
+            <select id="appsStatusFilter" class="input" style="background:var(--bg-1);padding:11px 14px;">
+              <option value="all">All Applications</option>
+              <option value="ACTIVE">Active Applications</option>
+              <option value="PAUSED">Paused Applications</option>
+            </select>
+
+            <button type="button" class="btn-create-app" id="openCreateAppBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Create Application
+            </button>
+          </div>
+
+          <div class="apps-list" id="appsList"></div>
+        </section>
+
+        <!-- LICENSES PANEL -->
+        <section class="dash-panel" id="panel-licenses">
+          <div class="surface-card">
+            <div class="surface-head" style="align-items:flex-start;margin-bottom:14px;">
+              <div style="flex:1;min-width:220px;max-width:420px;display:grid;gap:14px;">
+                <input id="licenseSearch" class="input" type="text" placeholder="Search licenses..." style="background:#0c0c0e;padding:11px 14px;border-radius:8px;" />
+                <label class="check-label" style="font-size:0.86rem;font-weight:600;padding-left:2px;">
+                  <input type="checkbox" class="custom-check" id="selectAllLicenses" />
+                  <span>Select All</span>
+                  <span id="selectedLicCount" class="mono" style="font-size:0.74rem;color:var(--text-muted);font-weight:400;"></span>
+                </label>
+              </div>
+
+              <!-- 6-Button KeyAuth-Style Action Icon Toolbar -->
+              <div class="license-toolbar" role="toolbar" aria-label="License Actions">
+                <button class="icon-action-btn" id="btnToggleFilter" data-tip="Filter licenses" aria-label="Filter licenses">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                </button>
+                <button class="icon-action-btn" id="btnToggleView" data-tip="Toggle grid view" aria-label="Toggle grid view">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                </button>
+                <button class="icon-action-btn primary-outline" id="btnOpenCreateLic" data-tip="Create new license" aria-label="Create new license">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+                </button>
+                <button class="icon-action-btn" id="btnOpenAddTime" data-tip="Add time to licenses" aria-label="Add time to licenses">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="2" x2="14" y2="2"/><line x1="12" y1="14" x2="15" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
+                </button>
+                <button class="icon-action-btn" id="exportLicensesBtn" data-tip="Export licenses (.txt)" aria-label="Export licenses">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+                </button>
+                <button class="icon-action-btn danger-outline" id="btnDeleteUnused" data-tip="Delete selected / unused" aria-label="Delete selected or unused licenses">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Collapsible Filter Drawer -->
+            <div class="filter-drawer" id="licenseFilterDrawer" style="grid-template-columns:1fr 1fr;">
+              <select id="licenseStatusFilter" class="input">
+                <option value="all">All Statuses</option>
+                <option value="Unused">Unused</option>
+                <option value="Active">Active</option>
+                <option value="Banned">Banned</option>
+              </select>
+              <select id="licenseLevelFilter" class="input">
+                <option value="all">All Levels</option>
+                <option value="1">Level 1 (default)</option>
+                <option value="2">Level 2 (Developer)</option>
+                <option value="3">Level 3 (Pro)</option>
+                <option value="4">Level 4 (Seller)</option>
+                <option value="5">Level 5 (Enterprise)</option>
+              </select>
+            </div>
+
+            <!-- Table View -->
+            <div id="licensesTableWrap" style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width:36px;"></th>
+                    <th>License Key</th>
+                    <th>Level</th>
+                    <th>Expiry</th>
+                    <th>Created By</th>
+                    <th>Used By</th>
+                    <th>Note</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="licensesBody"></tbody>
+              </table>
+            </div>
+
+            <!-- Grid View -->
+            <div id="licensesGridWrap" class="licenses-grid-view" style="display:none;"></div>
+          </div>
+        </section>
+
+        <!-- TEAM LICENSES PANEL (Owner Only) -->
+        <section class="dash-panel" id="panel-team-licenses">
+          <div class="surface-card">
+            <div class="surface-head" style="align-items:flex-end;">
+              <div>
+                <h3>Team Licenses</h3>
+                <span style="font-size:0.78rem;color:var(--text-muted);">Owner-only view of license keys generated by your team members and resellers.</span>
+              </div>
+              <span class="tag-status" id="teamLicCountBadge">0 keys</span>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin-bottom:16px;">
+              <div class="field">
+                <label for="teamLicMemberSelect">Select Team Member</label>
+                <select id="teamLicMemberSelect" class="input" style="background:#0c0c0e;padding:10px 12px;">
+                  <option value="all">All Team &amp; Reseller Members</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="teamLicSearch">Search Keys</label>
+                <input id="teamLicSearch" class="input" type="text" placeholder="Search key, used by, or note..." style="background:#0c0c0e;padding:10px 12px;" />
+              </div>
+            </div>
+
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>License Key</th>
+                    <th>Team Member</th>
+                    <th>Level</th>
+                    <th>Expiry</th>
+                    <th>Used By</th>
+                    <th>Note</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="teamLicensesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- USERS & HWIDS PANEL -->
+        <section class="dash-panel" id="panel-users">
+          <div class="surface-card">
+            <div class="surface-head">
+              <div>
+                <h3>Users &amp; HWIDs</h3>
+                <span style="font-size:0.78rem;color:var(--text-muted);">View user details, reset hardware locks, ban accounts, or edit subscriptions.</span>
+              </div>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Subscription</th>
+                    <th>Bound HWID</th>
+                    <th>IP Address</th>
+                    <th>Last Login</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="usersBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TEAMS PANEL -->
+        <section class="dash-panel" id="panel-teams">
+          <div class="surface-card" id="incomingTeamInvitesCard" style="display:none;border-color:var(--border-strong);">
+            <div class="surface-head">
+              <div>
+                <h3>Incoming Team Invitations</h3>
+                <span style="font-size:0.78rem;color:var(--text-muted);">Invitations sent to your account email.</span>
+              </div>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Application</th>
+                    <th>Invited By</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="incomingTeamsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="surface-card">
+            <div class="surface-head">
+              <div>
+                <h3>Invite Team Member</h3>
+                <span style="font-size:0.78rem;color:var(--text-muted);">Sends an email invitation and delivers it directly to the user's Teams tab.</span>
+              </div>
+            </div>
+            <form id="inviteTeamForm" style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:12px;align-items:end;">
+              <div class="field">
+                <label for="teamInviteEmail">Email Address</label>
+                <input id="teamInviteEmail" class="input" type="email" placeholder="teammate@studio.io" required />
+              </div>
+              <div class="field">
+                <label for="teamInviteRole">Role</label>
+                <select id="teamInviteRole" class="input">
+                  <option value="Admin">Admin (Full Access)</option>
+                  <option value="Manager">Manager (Licenses &amp; Users)</option>
+                  <option value="Support">Support (HWID Reset &amp; View)</option>
+                  <option value="Read-Only">Read-Only</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary">Send Email Invite</button>
+            </form>
+          </div>
+
+          <div class="surface-card">
+            <div class="surface-head">
+              <h3>Team Members &amp; Sent Invites</h3>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Added</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="teamsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- RESELLERS PANEL -->
+        <section class="dash-panel" id="panel-resellers">
+          <div class="surface-card" id="incomingResellerInvitesCard" style="display:none;border-color:var(--border-strong);">
+            <div class="surface-head">
+              <div>
+                <h3>Incoming Reseller Invitations</h3>
+                <span style="font-size:0.78rem;color:var(--text-muted);">Reseller invitations sent to your account email.</span>
+              </div>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Application</th>
+                    <th>Invited By</th>
+                    <th>Scope</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="incomingResellersBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="surface-card">
+            <div class="surface-head">
+              <div>
+                <h3>Invite Reseller via Email</h3>
+                <span style="font-size:0.78rem;color:var(--text-muted);">Sends an email invitation and delivers it directly to the user's Resellers tab.</span>
+              </div>
+            </div>
+            <form id="inviteResellerForm" style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:12px;align-items:end;">
+              <div class="field">
+                <label for="resellerInviteEmail">Reseller Email</label>
+                <input id="resellerInviteEmail" class="input" type="email" placeholder="partner@storefront.com" required />
+              </div>
+              <div class="field">
+                <label for="resellerInviteLevel">Allowed Level</label>
+                <select id="resellerInviteLevel" class="input">
+                  <option value="Level 1-3">Level 1–3</option>
+                  <option value="All Levels">All Levels</option>
+                  <option value="Level 1 Only">Level 1 Only</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary">Send Reseller Invite</button>
+            </form>
+          </div>
+
+          <div class="surface-card">
+            <div class="surface-head">
+              <h3>Authorized Resellers &amp; Invites</h3>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Reseller Email</th>
+                    <th>Scope</th>
+                    <th>Keys Generated</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="resellersBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VARIABLES & FILES PANEL -->
+        <section class="dash-panel" id="panel-variables">
+          <div class="surface-card">
+            <div class="surface-head">
+              <h3>Create Encrypted Cloud Variable</h3>
+            </div>
+            <form id="varForm" style="display:grid;grid-template-columns:1fr 2fr auto;gap:12px;align-items:end;">
+              <div class="field">
+                <label for="varName">Variable Name</label>
+                <input id="varName" class="input mono" placeholder="api_gateway" required />
+              </div>
+              <div class="field">
+                <label for="varValue">Encrypted Value</label>
+                <input id="varValue" class="input mono" placeholder="https://internal.api/v3" required />
+              </div>
+              <button type="submit" class="btn btn-primary">Save Variable</button>
+            </form>
+          </div>
+
+          <div class="surface-card">
+            <div class="surface-head">
+              <h3>Active Cloud Variables</h3>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Value</th>
+                    <th>Access</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="varsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECURITY & BLACKLIST PANEL -->
+        <section class="dash-panel" id="panel-security">
+          <div class="surface-card">
+            <div class="surface-head">
+              <h3>Zero-Trust Enforcement Policies</h3>
+            </div>
+            <div class="switch-row">
+              <div>
+                <strong>Strict HWID Locking</strong>
+                <p style="font-size:0.82rem;color:var(--text-muted);">Bind every license to the first verified hardware fingerprint.</p>
+              </div>
+              <input type="checkbox" class="toggle" data-sec-toggle="hwidLock" checked />
+            </div>
+            <div class="switch-row">
+              <div>
+                <strong>Ephemeral AES-256-GCM Sessions</strong>
+                <p style="font-size:0.82rem;color:var(--text-muted);">Rotate session keys every 300 seconds with Ed25519 signature pinning.</p>
+              </div>
+              <input type="checkbox" class="toggle" data-sec-toggle="ephemeral" checked />
+            </div>
+            <div class="switch-row">
+              <div>
+                <strong>Hardware Attestation &amp; VM Heuristics</strong>
+                <p style="font-size:0.82rem;color:var(--text-muted);">Flag anomalous clock skew, binary hash mismatches, and automated replay attempts.</p>
+              </div>
+              <input type="checkbox" class="toggle" data-sec-toggle="attestation" checked />
+            </div>
+            <div class="switch-row">
+              <div>
+                <strong>Offline Lease Tokens (24h Grace)</strong>
+                <p style="font-size:0.82rem;color:var(--text-muted);">Allow signed offline validation during temporary ISP outages.</p>
+              </div>
+              <input type="checkbox" class="toggle" data-sec-toggle="offlineLease" />
+            </div>
+          </div>
+
+          <div class="surface-card">
+            <div class="surface-head">
+              <h3>Global Blacklist (IP / HWID / ASN)</h3>
+            </div>
+            <form id="blacklistForm" style="display:grid;grid-template-columns:140px 1fr 1fr auto;gap:12px;align-items:end;margin-bottom:18px;">
+              <div class="field">
+                <label for="blType">Type</label>
+                <select id="blType" class="input">
+                  <option value="HWID">HWID</option>
+                  <option value="IP">IP Address</option>
+                  <option value="ASN">ASN</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="blValue">Target Value</label>
+                <input id="blValue" class="input mono" placeholder="HWID-BAD-9910 or 198.51.100.4" required />
+              </div>
+              <div class="field">
+                <label for="blReason">Reason</label>
+                <input id="blReason" class="input" placeholder="Chargeback / Abuse" />
+              </div>
+              <button type="submit" class="btn btn-primary">Block</button>
+            </form>
+
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Value</th>
+                    <th>Reason</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="blacklistBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- WEBHOOKS PANEL -->
+        <section class="dash-panel" id="panel-webhooks">
+          <div class="surface-card">
+            <div class="surface-head">
+              <h3>Server-Side Webhook Proxy &amp; Discord Alerts</h3>
+              <button class="btn btn-secondary btn-sm" id="testWebhookBtn">Send Test Payload</button>
+            </div>
+            <div class="sim-row">
+              <div class="field">
+                <label for="whUrl">Webhook Endpoint URL</label>
+                <input id="whUrl" class="input mono" value="https://discord.com/api/webhooks/shieldauth-audit" />
+              </div>
+              <div class="field">
+                <label for="whSecret">HMAC-SHA256 Signing Secret</label>
+                <input id="whSecret" class="input mono" value="whsec_91f4c820a3d7b5e2109c" readonly />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SETTINGS PANEL -->
+        <section class="dash-panel" id="panel-settings">
+          <div class="surface-card">
+            <div class="surface-head">
+              <h3>Application Credentials</h3>
+              <button class="btn btn-secondary btn-sm" id="rotateSecretBtn">Rotate Secret</button>
+            </div>
+            <div class="sim-form" style="max-width:600px;">
+              <div class="field">
+                <label for="setAppName">Application Name</label>
+                <input id="setAppName" class="input" value="CoreSuite Pro" />
+              </div>
+              <div class="sim-row">
+                <div class="field">
+                  <label>Application ID</label>
+                  <input id="setAppId" class="input mono" value="app_9f82c1a0" readonly />
+                </div>
+                <div class="field">
+                  <label>Owner ID</label>
+                  <input class="input mono" value="own_44b19e2d" readonly />
+                </div>
+              </div>
+              <div class="field">
+                <label>Ed25519 Public Key (Pin in SDK)</label>
+                <input class="input mono" value="ed25519:pk_live_8a91c4f0d2b17e33a90c41f7" readonly />
+              </div>
+              <div class="field">
+                <label>App Secret</label>
+                <input id="setAppSecret" class="input mono" value="shld_sec_72a91e4f0b8c3d11a09e2f44c18b" readonly />
+              </div>
+              <div style="display:flex;gap:10px;">
+                <button class="btn btn-primary" id="saveSettingsBtn">Save Changes</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="surface-card">
+            <div class="surface-head">
+              <div>
+                <h3>Premade SDK Integration Code</h3>
+                <span style="font-size:0.78rem;color:var(--text-muted);">Auto-filled with your active application's credentials. Copy and paste directly into your project.</span>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="copyDashCodeBtn">Copy Code</button>
+            </div>
+
+            <div class="sdk-shell">
+              <div class="sdk-sidebar" id="dashSdkTabs" role="tablist" aria-label="Coding Languages">
+                <button class="sdk-tab active" data-dash-lang="cpp"><span>C++</span><span class="ext">.cpp</span></button>
+                <button class="sdk-tab" data-dash-lang="csharp"><span>C# / .NET</span><span class="ext">.cs</span></button>
+                <button class="sdk-tab" data-dash-lang="python"><span>Python</span><span class="ext">.py</span></button>
+                <button class="sdk-tab" data-dash-lang="rust"><span>Rust</span><span class="ext">.rs</span></button>
+                <button class="sdk-tab" data-dash-lang="js"><span>JavaScript</span><span class="ext">.js</span></button>
+                <button class="sdk-tab" data-dash-lang="ts"><span>TypeScript</span><span class="ext">.ts</span></button>
+                <button class="sdk-tab" data-dash-lang="go"><span>Go</span><span class="ext">.go</span></button>
+                <button class="sdk-tab" data-dash-lang="php"><span>PHP</span><span class="ext">.php</span></button>
+                <button class="sdk-tab" data-dash-lang="java"><span>Java</span><span class="ext">.java</span></button>
+                <button class="sdk-tab" data-dash-lang="lua"><span>Lua</span><span class="ext">.lua</span></button>
+                <button class="sdk-tab" data-dash-lang="ruby"><span>Ruby</span><span class="ext">.rb</span></button>
+                <button class="sdk-tab" data-dash-lang="swift"><span>Swift</span><span class="ext">.swift</span></button>
+                <button class="sdk-tab" data-dash-lang="kotlin"><span>Kotlin</span><span class="ext">.kt</span></button>
+              </div>
+              <div class="sdk-content">
+                <div class="sdk-toolbar">
+                  <span class="sdk-file" id="dashSdkFilename">shieldauth_setup.cpp</span>
+                  <span class="mono" style="font-size:0.72rem;color:var(--text-muted);">Live Credentials Bound</span>
+                </div>
+                <pre class="code-block" id="dashSdkCode"></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Create a New License Modal (Matches Reference Layout) -->
+  <div class="modal-backdrop" id="createLicenseModal" aria-hidden="true">
+    <div class="modal modal-license" role="dialog" aria-labelledby="createLicTitle">
+      <div class="modal-license-header">
+        <h3 id="createLicTitle">Create a new license</h3>
+        <button class="modal-close" id="closeCreateLicModal" aria-label="Close">&times;</button>
+      </div>
+
+      <form id="createLicenseForm">
+        <div class="modal-license-body">
+          <!-- License Amount -->
+          <div class="lic-field">
+            <label for="licAmount">License Amount <span class="req-star">*</span></label>
+            <div class="field-with-info">
+              <input id="licAmount" class="input" type="number" min="1" max="100" value="1" required />
+              <i class="info-tip" data-tip="Number of license keys to generate in this batch (1 to 100).">i</i>
+            </div>
+          </div>
+
+          <!-- License Mask -->
+          <div class="lic-field">
+            <label for="licMask">License Mask <span class="req-star">*</span></label>
+            <div class="field-with-info">
+              <input id="licMask" class="input mono" type="text" value="SHLD-******-******-******-******" required />
+              <i class="info-tip" data-tip="Each asterisk (*) is replaced with a random character matching your letter options below.">i</i>
+            </div>
+          </div>
+
+          <!-- Lowercase / Uppercase Letters Row -->
+          <div class="mask-options-row">
+            <label class="check-label">
+              <input type="checkbox" class="custom-check" id="licLowercase" />
+              <span>Lowercase Letters</span>
+            </label>
+            <i class="info-tip" data-tip="Choose whether random mask characters include lowercase letters, uppercase letters, or both.">i</i>
+            <label class="check-label">
+              <span>Uppercase Letters</span>
+              <input type="checkbox" class="custom-check" id="licUppercase" checked />
+            </label>
+          </div>
+
+          <!-- Subscription Level -->
+          <div class="lic-field">
+            <label for="licSubLevel">Subscription Level <span class="req-star">*</span></label>
+            <div class="field-with-info">
+              <select id="licSubLevel" class="input">
+                <option value="1">1 (default)</option>
+                <option value="2">2 (Developer)</option>
+                <option value="3">3 (Pro)</option>
+                <option value="4">4 (Seller)</option>
+                <option value="5">5 (Enterprise)</option>
+              </select>
+              <i class="info-tip" data-tip="Maps the generated license to a subscription level configured in your app.">i</i>
+            </div>
+          </div>
+
+          <!-- License Note -->
+          <div class="lic-field">
+            <label for="licNote">License Note</label>
+            <div class="field-with-info">
+              <input id="licNote" class="input" type="text" placeholder="" />
+              <i class="info-tip" data-tip="Optional internal memo attached to these licenses (e.g., customer order ID or reseller name).">i</i>
+            </div>
+          </div>
+
+          <!-- Expiry Unit & Expiry Duration -->
+          <div class="expiry-row">
+            <div class="lic-field">
+              <label for="licExpiryUnit">Expiry Unit <span class="req-star">*</span></label>
+              <div class="field-with-info">
+                <select id="licExpiryUnit" class="input">
+                  <option value="Lifetime">Lifetime</option>
+                  <option value="Seconds">Seconds</option>
+                  <option value="Minutes">Minutes</option>
+                  <option value="Hours">Hours</option>
+                  <option value="Days">Days</option>
+                  <option value="Weeks">Weeks</option>
+                  <option value="Months">Months</option>
+                  <option value="Years">Years</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="lic-field">
+              <label for="licExpiryDuration">Expiry Duration <span class="req-star">*</span></label>
+              <div class="field-with-info">
+                <input id="licExpiryDuration" class="input" type="number" min="1" value="1" required />
+                <i class="info-tip" data-tip="Length of the subscription once redeemed. Ignored when Expiry Unit is set to Lifetime.">i</i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-license-footer">
+          <button type="button" class="btn-modal-cancel" id="cancelCreateLicBtn">Cancel</button>
+          <button type="submit" class="btn-modal-submit">Create License</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Time Modal (Key-First) -->
+  <div class="modal-backdrop" id="addTimeModal" aria-hidden="true">
+    <div class="modal modal-license" role="dialog" aria-labelledby="addTimeTitle">
+      <div class="modal-license-header">
+        <h3 id="addTimeTitle">Add time to license</h3>
+        <button class="modal-close" id="closeAddTimeModal" aria-label="Close">&times;</button>
+      </div>
+      <form id="addTimeForm">
+        <div class="modal-license-body">
+          <div class="lic-field">
+            <label for="addTimeKey">License Key <span class="req-star">*</span></label>
+            <div class="field-with-info">
+              <input id="addTimeKey" class="input mono" list="licenseKeyList" placeholder="SHLD-..." required />
+              <datalist id="licenseKeyList"></datalist>
+              <i class="info-tip" data-tip="Enter or choose the exact license key you want to extend.">i</i>
+            </div>
+          </div>
+
+          <div class="expiry-row">
+            <div class="lic-field">
+              <label for="addTimeUnit">Expiry Unit <span class="req-star">*</span></label>
+              <div class="field-with-info">
+                <select id="addTimeUnit" class="input">
+                  <option value="Days">Days</option>
+                  <option value="Seconds">Seconds</option>
+                  <option value="Minutes">Minutes</option>
+                  <option value="Hours">Hours</option>
+                  <option value="Weeks">Weeks</option>
+                  <option value="Months">Months</option>
+                  <option value="Years">Years</option>
+                  <option value="Lifetime">Lifetime</option>
+                </select>
+              </div>
+            </div>
+            <div class="lic-field">
+              <label for="addTimeAmount">Expiry Duration <span class="req-star">*</span></label>
+              <div class="field-with-info">
+                <input id="addTimeAmount" class="input" type="number" min="1" value="7" required />
+                <i class="info-tip" data-tip="Amount of time to add to the selected license key.">i</i>
+              </div>
+            </div>
+          </div>
+
+          <div class="lic-field">
+            <label for="addTimeNote">Note (Optional)</label>
+            <div class="field-with-info">
+              <input id="addTimeNote" class="input" type="text" placeholder="e.g., Compensation / Renewal" />
+              <i class="info-tip" data-tip="Optionally update or append a memo on this license.">i</i>
+            </div>
+          </div>
+        </div>
+        <div class="modal-license-footer">
+          <button type="button" class="btn-modal-cancel" id="cancelAddTimeBtn">Cancel</button>
+          <button type="submit" class="btn-modal-submit">Add Time</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit License Modal -->
+  <div class="modal-backdrop" id="editLicenseModal" aria-hidden="true">
+    <div class="modal modal-license" role="dialog" aria-labelledby="editLicTitle">
+      <div class="modal-license-header">
+        <h3 id="editLicTitle">Edit license</h3>
+        <button class="modal-close" id="closeEditLicModal" aria-label="Close">&times;</button>
+      </div>
+      <form id="editLicenseForm">
+        <div class="modal-license-body">
+          <div class="lic-field">
+            <label for="editLicKey">License Key</label>
+            <div class="field-with-info">
+              <input id="editLicKey" class="input mono" type="text" readonly />
+            </div>
+          </div>
+
+          <div class="lic-field">
+            <label for="editLicLevel">Subscription Level <span class="req-star">*</span></label>
+            <div class="field-with-info">
+              <select id="editLicLevel" class="input">
+                <option value="1">1 (default)</option>
+                <option value="2">2 (Developer)</option>
+                <option value="3">3 (Pro)</option>
+                <option value="4">4 (Seller)</option>
+                <option value="5">5 (Enterprise)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="lic-field">
+            <label for="editLicExpiry">Expiry</label>
+            <div class="field-with-info">
+              <input id="editLicExpiry" class="input" type="text" required />
+            </div>
+          </div>
+
+          <div class="lic-field">
+            <label for="editLicNote">License Note</label>
+            <div class="field-with-info">
+              <input id="editLicNote" class="input" type="text" />
+            </div>
+          </div>
+
+          <div class="lic-field">
+            <label for="editLicStatus">Status</label>
+            <div class="field-with-info">
+              <select id="editLicStatus" class="input">
+                <option value="Unused">Unused</option>
+                <option value="Active">Active</option>
+                <option value="Banned">Banned</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-license-footer">
+          <button type="button" class="btn-modal-cancel" id="cancelEditLicBtn">Cancel</button>
+          <button type="submit" class="btn-modal-submit">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit User Modal -->
+  <div class="modal-backdrop" id="editUserModal" aria-hidden="true">
+    <div class="modal modal-license" role="dialog" aria-labelledby="editUserTitle">
+      <div class="modal-license-header">
+        <h3 id="editUserTitle">Edit user</h3>
+        <button class="modal-close" id="closeEditUserModal" aria-label="Close">&times;</button>
+      </div>
+      <form id="editUserForm">
+        <div class="modal-license-body">
+          <input type="hidden" id="editUserOrigName" />
+          <div class="lic-field">
+            <label for="editUserName">Username <span class="req-star">*</span></label>
+            <div class="field-with-info">
+              <input id="editUserName" class="input mono" type="text" required />
+            </div>
+          </div>
+
+          <div class="lic-field">
+            <label for="editUserTier">Subscription Tier <span class="req-star">*</span></label>
+            <div class="field-with-info">
+              <input id="editUserTier" class="input" type="text" required />
+            </div>
+          </div>
+
+          <div class="lic-field">
+            <label for="editUserHwid">Bound HWID</label>
+            <div class="field-with-info">
+              <input id="editUserHwid" class="input mono" type="text" placeholder="Unbound" />
+              <button type="button" class="btn btn-secondary btn-sm" id="editUserResetHwidBtn">Reset</button>
+            </div>
+          </div>
+
+          <div class="lic-field">
+            <label for="editUserStatus">Status</label>
+            <div class="field-with-info">
+              <select id="editUserStatus" class="input">
+                <option value="Active">Active</option>
+                <option value="Banned">Banned</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-license-footer">
+          <button type="button" class="btn-modal-cancel" id="cancelEditUserBtn">Cancel</button>
+          <button type="submit" class="btn-modal-submit">Save User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Create Application Modal -->
+  <div class="modal-backdrop" id="createAppModal" aria-hidden="true">
+    <div class="modal modal-license" role="dialog" aria-labelledby="createAppTitle">
+      <div class="modal-license-header">
+        <h3 id="createAppTitle">Create Application</h3>
+        <button class="modal-close" id="closeCreateAppModal" aria-label="Close">&times;</button>
+      </div>
+      <form id="createAppForm">
+        <div class="modal-license-body">
+          <div class="lic-field">
+            <label for="newAppName">Application Name <span class="req-star">*</span></label>
+            <div class="field-with-info">
+              <input id="newAppName" class="input" type="text" placeholder="e.g., Studio Launcher" required />
+            </div>
+          </div>
+          <div class="lic-field">
+            <label for="newAppVersion">App Version <span class="req-star">*</span></label>
+            <div class="field-with-info">
+              <input id="newAppVersion" class="input mono" type="text" value="1.0" required />
+            </div>
+          </div>
+          <div class="lic-field">
+            <label for="newAppDesc">Description</label>
+            <div class="field-with-info">
+              <input id="newAppDesc" class="input" type="text" placeholder="Optional application summary" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-license-footer">
+          <button type="button" class="btn-modal-cancel" id="cancelCreateAppBtn">Cancel</button>
+          <button type="submit" class="btn-modal-submit">Create Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Rename Application Modal -->
+  <div class="modal-backdrop" id="renameAppModal" aria-hidden="true">
+    <div class="modal modal-license" role="dialog" aria-labelledby="renameAppTitle">
+      <div class="modal-license-header">
+        <h3 id="renameAppTitle">Rename Application</h3>
+        <button class="modal-close" id="closeRenameAppModal" aria-label="Close">&times;</button>
+      </div>
+      <form id="renameAppForm">
+        <div class="modal-license-body">
+          <input type="hidden" id="renameAppId" />
+          <div class="lic-field">
+            <label for="renameAppInput">New Application Name <span class="req-star">*</span></label>
+            <div class="field-with-info">
+              <input id="renameAppInput" class="input" type="text" required />
+            </div>
+          </div>
+        </div>
+        <div class="modal-license-footer">
+          <button type="button" class="btn-modal-cancel" id="cancelRenameAppBtn">Cancel</button>
+          <button type="submit" class="btn-modal-submit">Save Name</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Application Description Modal -->
+  <div class="modal-backdrop" id="editDescModal" aria-hidden="true">
+    <div class="modal modal-license" role="dialog" aria-labelledby="editDescTitle">
+      <div class="modal-license-header">
+        <h3 id="editDescTitle">Edit Application Description</h3>
+        <button class="modal-close" id="closeEditDescModal" aria-label="Close">&times;</button>
+      </div>
+      <form id="editDescForm">
+        <div class="modal-license-body">
+          <input type="hidden" id="editDescAppId" />
+          <div class="lic-field">
+            <label for="editDescInput">Description</label>
+            <div class="field-with-info">
+              <input id="editDescInput" class="input" type="text" placeholder="Describe what this application does..." />
+            </div>
+          </div>
+        </div>
+        <div class="modal-license-footer">
+          <button type="button" class="btn-modal-cancel" id="cancelEditDescBtn">Cancel</button>
+          <button type="submit" class="btn-modal-submit">Save Description</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Owner Inspector: View, Create & Delete Member / Reseller Keys -->
+  <div class="modal-backdrop" id="memberKeysModal" aria-hidden="true">
+    <div class="modal modal-license" style="max-width:780px;" role="dialog" aria-labelledby="memberKeysTitle">
+      <div class="modal-license-header">
+        <div>
+          <h3 id="memberKeysTitle">Generated Keys</h3>
+          <span id="memberKeysSubtitle" class="mono" style="font-size:0.75rem;color:var(--text-muted);"></span>
+        </div>
+        <button class="modal-close" id="closeMemberKeysModal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-license-body" style="padding-top:10px;">
+        <form id="memberQuickCreateForm" class="member-quick-create">
+          <div class="field">
+            <label for="mqMask">License Mask</label>
+            <input id="mqMask" class="input mono" type="text" value="SHLD-******-******-******" required />
+          </div>
+          <div class="field">
+            <label for="mqLevel">Level</label>
+            <select id="mqLevel" class="input">
+              <option value="1">1 (default)</option>
+              <option value="2">2 (Developer)</option>
+              <option value="3">3 (Pro)</option>
+              <option value="4">4 (Seller)</option>
+              <option value="5">5 (Enterprise)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="mqExpiry">Expiry</label>
+            <select id="mqExpiry" class="input">
+              <option value="Lifetime">Lifetime</option>
+              <option value="1 Day">1 Day</option>
+              <option value="7 Days">7 Days</option>
+              <option value="30 Days">30 Days</option>
+              <option value="90 Days">90 Days</option>
+              <option value="1 Year">1 Year</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">+ Create Key</button>
+        </form>
+
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>License Key</th>
+                <th>Level</th>
+                <th>Expiry</th>
+                <th>Used By</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="memberKeysBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-license-footer">
+        <button type="button" class="btn-modal-cancel" id="doneMemberKeysBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="invite-tray" id="inviteTray" aria-live="polite"></div>
+  <div class="toast" id="toast"></div>
+  <script src="dashboard.js"></script>
+</body>
+</html>

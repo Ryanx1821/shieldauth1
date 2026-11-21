@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShieldAuth — Cloud Authentication &amp; Licensing System</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <meta name="description" content="Open-source cloud authentication and software licensing system with HWID protection, FIDO2/2FA, storefront integrations, Discord &amp; Telegram bots, and multi-language SDKs." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="brand">
+        <img src="logo.png" alt="ShieldAuth" class="brand-logo" />
+        <span>ShieldAuth</span>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#integrations">Integrations</a></li>
+          <li><a href="#sdks">Developers</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#reviews">Reviews</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-ghost" data-open-auth="login">Login</button>
+        <a href="dashboard.html" class="btn btn-secondary">Dashboard</a>
+        <button class="btn btn-primary" data-open-auth="register">Register</button>
+      </div>
+
+      <button class="mobile-toggle" id="mobileMenuBtn" aria-label="Open Dashboard">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Centered Hero + Dashboard Preview (KeyAuth Layout) -->
+  <section class="hero bg-grid">
+    <div class="container">
+      <div class="hero-center">
+        <div class="badge">
+          <span class="status-dot"></span>
+          <span>Rated 4.9/5 &middot; Open-Source Cloud Authentication</span>
+        </div>
+
+        <h1>
+          Secure authentication &amp; licensing <span>for your software.</span>
+        </h1>
+
+        <p>
+          Protect your applications from piracy with cloud-based license keys, HWID locking, binary hash checks, FIDO2 security keys, storefront automation, and open-source SDKs.
+        </p>
+
+        <div class="hero-cta">
+          <button class="btn btn-primary btn-lg" data-open-auth="register">
+            Get Started Free
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+          <a href="dashboard.html" class="btn btn-secondary btn-lg">Open Dashboard</a>
+        </div>
+
+        <div class="hero-submeta">
+          <span>&#10003; Free Tester Plan Forever</span>
+          <span>&#10003; Instant Storefront Fulfillment</span>
+          <span>&#10003; Ed25519 Signed Sessions</span>
+        </div>
+      </div>
+
+      <!-- High-Fidelity Dashboard Showcase Window -->
+      <div class="hero-showcase">
+        <div class="showcase-bar">
+          <div class="showcase-dots"><i></i><i></i><i></i></div>
+          <span class="showcase-url">https://shieldauth.com/app/dashboard</span>
+          <a href="dashboard.html" class="btn btn-secondary btn-sm">Open Full Console &rarr;</a>
+        </div>
+        <div class="showcase-body">
+          <div class="showcase-nav">
+            <div class="showcase-nav-item active"><span>Overview</span><span class="mono" style="font-size:0.68rem;">LIVE</span></div>
+            <div class="showcase-nav-item"><span>Licenses</span><span class="mono" style="font-size:0.68rem;">1,284</span></div>
+            <div class="showcase-nav-item"><span>Users &amp; HWIDs</span><span class="mono" style="font-size:0.68rem;">842</span></div>
+            <div class="showcase-nav-item"><span>Subscriptions</span></div>
+            <div class="showcase-nav-item"><span>Vars &amp; Files</span></div>
+            <div class="showcase-nav-item"><span>Chats &amp; Webhooks</span></div>
+            <div class="showcase-nav-item"><span>Blacklists</span></div>
+            <div class="showcase-nav-item"><span>Resellers</span></div>
+          </div>
+
+          <div class="showcase-content">
+            <div class="showcase-kpis">
+              <div class="mini-kpi"><span>Active Users</span><strong>12,480</strong></div>
+              <div class="mini-kpi"><span>Licenses Minted</span><strong>34,910</strong></div>
+              <div class="mini-kpi"><span>Blocked Threats</span><strong>1,094</strong></div>
+              <div class="mini-kpi"><span>Edge Latency</span><strong>13ms</strong></div>
+            </div>
+
+            <div class="showcase-split">
+              <div class="mini-panel">
+                <div class="mini-panel-head">
+                  <span>Recent License Keys</span>
+                  <span class="mono" style="font-size:0.7rem;color:var(--text-muted);">HWID LOCKED</span>
+                </div>
+                <div class="mini-rows">
+                  <div class="mini-row"><span>SHLD-9F2A-7C4E-88B1</span><span style="color:var(--text-muted);">Lifetime &middot; Active</span></div>
+                  <div class="mini-row"><span>SHLD-4K8M-2P9Q-71RX</span><span style="color:var(--text-muted);">Pro 90d &middot; Unused</span></div>
+                  <div class="mini-row"><span>SHLD-7D3V-9N2W-55ZT</span><span style="color:var(--text-muted);">Seller &middot; Active</span></div>
+                </div>
+              </div>
+
+              <div class="mini-panel">
+                <div class="mini-panel-head">
+                  <span>Live Auth Volume</span>
+                  <span class="mono" style="font-size:0.7rem;color:var(--text-muted);">99.99% OK</span>
+                </div>
+                <div class="chart-bars" style="height:108px;gap:6px;">
+                  <div class="chart-bar" style="height:42%"></div>
+                  <div class="chart-bar" style="height:55%"></div>
+                  <div class="chart-bar" style="height:48%"></div>
+                  <div class="chart-bar" style="height:66%"></div>
+                  <div class="chart-bar" style="height:74%"></div>
+                  <div class="chart-bar" style="height:69%"></div>
+                  <div class="chart-bar" style="height:82%"></div>
+                  <div class="chart-bar" style="height:78%"></div>
+                  <div class="chart-bar" style="height:90%"></div>
+                  <div class="chart-bar" style="height:86%"></div>
+                  <div class="chart-bar" style="height:94%"></div>
+                  <div class="chart-bar" style="height:98%"></div>
+                  <div class="chart-bar" style="height:92%"></div>
+                  <div class="chart-bar" style="height:96%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platform Stats Strip -->
+  <section class="metrics-strip">
+    <div class="container metrics-grid">
+      <div class="metric-item">
+        <div class="metric-value">2.4M+</div>
+        <div class="metric-label">Protected End Users</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-value">45,000+</div>
+        <div class="metric-label">Active Applications</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-value">99.99%</div>
+        <div class="metric-label">Cloud API Uptime</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-value">10+</div>
+        <div class="metric-label">Open-Source SDKs</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Core Features (KeyAuth Feature Parity + More) -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header center">
+        <div class="section-eyebrow">Platform Features</div>
+        <h2>Everything you need to license and protect your software.</h2>
+        <p>All the core authentication tools developers rely on, engineered with stronger cryptography and faster global delivery.</p>
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature-card">
+          <div>
+            <div class="card-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <h3>Flexible Authentication Flows</h3>
+            <p>Support license-only login, username &amp; password + key registration, subscription levels, custom key masks, and instant batch key generation.</p>
+          </div>
+          <div class="tag-row">
+            <span class="pill">License Keys</span>
+            <span class="pill">Subscriptions</span>
+            <span class="pill">Custom Masks</span>
+          </div>
+        </article>
+
+        <article class="feature-card">
+          <div>
+            <div class="card-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3>HWID Locking &amp; Hash Checks</h3>
+            <p>Bind seats to hardware fingerprints with configurable cooldown resets, verify binary SHA-256 hashes, and block modified clients automatically.</p>
+          </div>
+          <div class="tag-row">
+            <span class="pill">HWID Lock</span>
+            <span class="pill">Binary Hash Check</span>
+            <span class="pill new">ATTESTATION</span>
+          </div>
+        </article>
+
+        <article class="feature-card">
+          <div>
+            <div class="card-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
+            <h3>FIDO2 / YubiKey &amp; Ephemeral Sessions</h3>
+            <p>Protect your developer account with FIDO2 hardware keys and TOTP 2FA while every client session uses rotating Ed25519 + AES-256-GCM tunnels.</p>
+          </div>
+          <div class="tag-row">
+            <span class="pill">YubiKey WebAuthn</span>
+            <span class="pill new">ED25519</span>
+          </div>
+        </article>
+
+        <article class="feature-card">
+          <div>
+            <div class="card-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            </div>
+            <h3>Cloud Variables, Files &amp; Chats</h3>
+            <p>Deliver encrypted server-side variables, authenticated binary downloads, and real-time in-app chat channels only to verified subscribers.</p>
+          </div>
+          <div class="tag-row">
+            <span class="pill">Encrypted Vars</span>
+            <span class="pill">File Hosting</span>
+            <span class="pill">In-App Chat</span>
+          </div>
+        </article>
+
+        <article class="feature-card">
+          <div>
+            <div class="card-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            </div>
+            <h3>Blacklists, Whitelists &amp; Webhooks</h3>
+            <p>Block abusive IPs, HWIDs, and ASNs globally. Proxy external API requests through server-side webhooks so secrets never touch the client.</p>
+          </div>
+          <div class="tag-row">
+            <span class="pill">IP / HWID Bans</span>
+            <span class="pill">Proxy Webhooks</span>
+            <span class="pill">Audit Logs</span>
+          </div>
+        </article>
+
+        <article class="feature-card">
+          <div>
+            <div class="card-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <h3>Team &amp; Reseller Management</h3>
+            <p>Create scoped sub-accounts for managers and resellers with credit balances, key generation limits, and per-application permissions.</p>
+          </div>
+          <div class="tag-row">
+            <span class="pill">Reseller Credits</span>
+            <span class="pill">Team RBAC</span>
+            <span class="pill new">OFFLINE LEASES</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Storefronts & Bots (KeyAuth Ecosystem) -->
+  <section class="section" id="integrations">
+    <div class="container">
+      <div class="section-header center">
+        <div class="section-eyebrow">Integrations &amp; Automation</div>
+        <h2>Connect your storefront, Discord, and Telegram in minutes.</h2>
+        <p>Automatically mint and deliver licenses on checkout, sync customer roles, and handle self-service HWID resets without lifting a finger.</p>
+      </div>
+
+      <div class="integrations-grid">
+        <div class="integration-card">
+          <div class="integration-top"><strong>Stripe</strong><span class="pill">Checkout</span></div>
+          <p>Auto-generate and email license keys instantly on successful Stripe payments or subscriptions.</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-top"><strong>Tebex</strong><span class="pill">Storefront</span></div>
+          <p>Native fulfillment webhooks for game studios and digital software storefronts.</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-top"><strong>Gumroad</strong><span class="pill">Storefront</span></div>
+          <p>Deliver verified ShieldAuth keys directly on Gumroad purchase receipts.</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-top"><strong>WooCommerce</strong><span class="pill">Plugin</span></div>
+          <p>Sync WordPress store orders with license creation, renewals, and chargeback bans.</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-top"><strong>Payhip</strong><span class="pill">Storefront</span></div>
+          <p>Zero-code webhook bridge for instant license key generation and delivery.</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-top"><strong>Discord Bot</strong><span class="pill new">INCLUDED</span></div>
+          <p>Assign subscriber roles, let customers claim keys, and automate HWID reset tickets.</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-top"><strong>Telegram Bot</strong><span class="pill new">INCLUDED</span></div>
+          <p>Manage keys, ban users, and receive real-time login &amp; threat alerts from Telegram.</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-top"><strong>Seller API</strong><span class="pill">REST</span></div>
+          <p>Full programmatic control over users, keys, files, and sessions from any backend.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Multi-Language Open-Source SDKs -->
+  <section class="section" id="sdks">
+    <div class="container">
+      <div class="section-header center">
+        <div class="section-eyebrow">Developers &amp; SDKs</div>
+        <h2>Open-source SDKs for every major language.</h2>
+        <p>Drop ShieldAuth into your project in minutes with clean, audited, ready-to-compile examples.</p>
+      </div>
+
+      <div class="sdk-shell">
+        <div class="sdk-sidebar" role="tablist" aria-label="SDK Languages">
+          <button class="sdk-tab active" data-lang="cpp"><span>C++</span><span class="ext">.cpp</span></button>
+          <button class="sdk-tab" data-lang="csharp"><span>C# / .NET</span><span class="ext">.cs</span></button>
+          <button class="sdk-tab" data-lang="python"><span>Python</span><span class="ext">.py</span></button>
+          <button class="sdk-tab" data-lang="rust"><span>Rust</span><span class="ext">.rs</span></button>
+          <button class="sdk-tab" data-lang="node"><span>JavaScript</span><span class="ext">.js</span></button>
+          <button class="sdk-tab" data-lang="php"><span>PHP</span><span class="ext">.php</span></button>
+          <button class="sdk-tab" data-lang="java"><span>Java</span><span class="ext">.java</span></button>
+          <button class="sdk-tab" data-lang="lua"><span>Lua</span><span class="ext">.lua</span></button>
+        </div>
+        <div class="sdk-content">
+          <div class="sdk-toolbar">
+            <span class="sdk-file" id="sdkFilename">main.cpp</span>
+            <button class="btn btn-secondary btn-sm" id="copySdkBtn">Copy code</button>
+          </div>
+          <pre class="code-block" id="sdkCode"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing (Exact KeyAuth Tiers: Tester, Developer, Seller) -->
+  <section class="section" id="pricing">
+    <div class="container">
+      <div class="section-header center">
+        <div class="section-eyebrow">Plans &amp; Pricing</div>
+        <h2>Transparent plans that scale with your software.</h2>
+        <p>Start free on the Tester plan and upgrade anytime as your user base grows.</p>
+      </div>
+
+      <div class="billing-wrap">
+        <div class="billing-toggle" role="group" aria-label="Billing Period">
+          <button class="billing-btn active" data-billing="monthly">Monthly</button>
+          <button class="billing-btn" data-billing="yearly">Yearly &middot; Save up to 58%</button>
+        </div>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Tester / Free -->
+        <div class="price-card">
+          <div class="price-tier">
+            <span>Tester</span>
+            <span class="pill">Free</span>
+          </div>
+          <div class="price-amount">
+            <strong data-price-monthly="$0" data-price-yearly="$0">$0</strong>
+            <span data-period-monthly="/ month" data-period-yearly="/ year">/ month</span>
+          </div>
+          <p class="price-desc">Test ShieldAuth in your application with core authentication and HWID locking.</p>
+          <ul class="price-list">
+            <li>&#10003; 1 Application</li>
+            <li>&#10003; Up to 10 Users</li>
+            <li>&#10003; Core Auth, License Keys &amp; HWID Lock</li>
+            <li>&#10003; All Open-Source SDKs</li>
+            <li class="dim">&mdash; Files &amp; Cloud Variables</li>
+            <li class="dim">&mdash; Blacklists, Webhooks &amp; Bots</li>
+          </ul>
+          <a href="dashboard.html" class="btn btn-secondary" style="width:100%;">Start Free</a>
+        </div>
+
+        <!-- Developer -->
+        <div class="price-card">
+          <div class="price-tier">
+            <span>Developer</span>
+            <span class="pill">Growing Apps</span>
+          </div>
+          <div class="price-amount">
+            <strong data-price-monthly="$2.99" data-price-yearly="$14.99">$2.99</strong>
+            <span data-period-monthly="/ month" data-period-yearly="/ year">/ month</span>
+          </div>
+          <p class="price-desc">Full licensing toolkit with variables, files, webhooks, blacklists, and team access.</p>
+          <ul class="price-list">
+            <li>&#10003; 8 Applications</li>
+            <li>&#10003; 10,000 Users per App</li>
+            <li>&#10003; Cloud Variables &amp; Encrypted Files</li>
+            <li>&#10003; Blacklists, Whitelists &amp; Webhooks</li>
+            <li>&#10003; In-App Chat &amp; Reseller Management</li>
+            <li>&#10003; Priority Support</li>
+          </ul>
+          <button class="btn btn-secondary" style="width:100%;" data-open-auth="register">Choose Developer</button>
+        </div>
+
+        <!-- Seller -->
+        <div class="price-card featured">
+          <div class="price-tier">
+            <span>Seller</span>
+            <span class="pill new">MOST POPULAR</span>
+          </div>
+          <div class="price-amount">
+            <strong data-price-monthly="$4.99" data-price-yearly="$24.99">$4.99</strong>
+            <span data-period-monthly="/ month" data-period-yearly="/ year">/ month</span>
+          </div>
+          <p class="price-desc">Unlimited scale with Discord &amp; Telegram bots, Seller API, custom domains, and attestation.</p>
+          <ul class="price-list">
+            <li>&#10003; Unlimited Applications &amp; Users</li>
+            <li>&#10003; Full Seller API &amp; Storefront Sync</li>
+            <li>&#10003; Discord &amp; Telegram Bots Included</li>
+            <li>&#10003; Hardware Attestation &amp; Offline Leases</li>
+            <li>&#10003; Custom Domain &amp; White-Label Panel</li>
+            <li>&#10003; Priority 24/7 Support</li>
+          </ul>
+          <button class="btn btn-primary" style="width:100%;" data-open-auth="register">Choose Seller</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Customer Reviews -->
+  <section class="section" id="reviews">
+    <div class="container">
+      <div class="section-header center">
+        <div class="section-eyebrow">Customer Voices</div>
+        <h2>Trusted by thousands of software developers.</h2>
+      </div>
+
+      <div class="reviews-grid">
+        <article class="review-card">
+          <div>
+            <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <p style="margin-top:12px;">"Migrated 6,000 active licenses in ten minutes. The C++ SDK compiled on the first try and our HWID reset tickets dropped by 80% thanks to the Discord bot."</p>
+          </div>
+          <div class="review-author">
+            <strong>Daniel K.</strong>
+            <span>Desktop Tools &middot; Seller Plan</span>
+          </div>
+        </article>
+
+        <article class="review-card">
+          <div>
+            <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <p style="margin-top:12px;">"Having Ed25519 response signing and cloud variables built in saved us weeks of backend work. Uptime has been rock-solid across every launch."</p>
+          </div>
+          <div class="review-author">
+            <strong>Sora M.</strong>
+            <span>Audio Plugins &middot; Seller Plan</span>
+          </div>
+        </article>
+
+        <article class="review-card">
+          <div>
+            <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <p style="margin-top:12px;">"Cleanest licensing dashboard I have used. Reseller credits and Stripe auto-delivery just work, and the monochrome UI is genuinely easy on the eyes."</p>
+          </div>
+          <div class="review-author">
+            <strong>Liam R.</strong>
+            <span>SaaS Utilities &middot; Developer Plan</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" id="faq">
+    <div class="container">
+      <div class="section-header center">
+        <div class="section-eyebrow">FAQ</div>
+        <h2>Frequently asked questions.</h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item open">
+          <button class="faq-q">
+            <span>How fast can I integrate ShieldAuth into my application?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-a">
+            <p>Most developers integrate ShieldAuth in under 5 minutes. Create an app in the dashboard, drop your App ID and Public Key into one of our open-source SDKs, and you're live.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q">
+            <span>Can I import my existing users and licenses from KeyAuth?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-a">
+            <p>Yes. Export your existing users, licenses, and HWIDs as JSON or CSV and import them directly into ShieldAuth with zero downtime for your customers.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q">
+            <span>How are my account and client sessions protected?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-a">
+            <p>Developer accounts support FIDO2 / YubiKey hardware keys and TOTP 2FA. Client handshakes use rotating AES-256-GCM sessions with Ed25519 response signatures to stop spoofing and replay attacks.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q">
+            <span>Can I manage multiple applications from one account?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-a">
+            <p>Yes. Create, pause, rename, and switch between applications inside My Applications—each with its own keys, users, cloud variables, and security policies.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="section" style="border-bottom:none;">
+    <div class="container">
+      <div class="cta-box">
+        <h2>Ready to protect your software?</h2>
+        <p>Start free on the Tester plan and launch your first application in minutes.</p>
+        <div class="hero-cta">
+          <button class="btn btn-primary btn-lg" data-open-auth="register">Create Free Account</button>
+          <a href="dashboard.html" class="btn btn-secondary btn-lg">Open Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="#" class="brand">
+            <img src="logo.png" alt="ShieldAuth" class="brand-logo" />
+            <span>ShieldAuth</span>
+          </a>
+          <p style="margin-top:14px;font-size:0.875rem;color:var(--text-muted);max-width:300px;">
+            Open-source cloud authentication and software licensing built for modern developers.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#integrations">Integrations</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Developers</h4>
+          <ul>
+            <li><a href="#sdks">SDK Examples</a></li>
+            <li><a href="#sdks">Seller API</a></li>
+            <li><a href="#faq">KeyAuth Migration</a></li>
+            <li><a href="dashboard.html">Status</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#faq">Terms of Service</a></li>
+            <li><a href="#faq">Privacy Policy</a></li>
+            <li><a href="#faq">Security</a></li>
+            <li><a href="#pricing">Refund Policy</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>&copy; 2026 ShieldAuth. All rights reserved.</span>
+        <span class="mono" style="font-size:0.74rem;">ALL SYSTEMS OPERATIONAL &middot; 99.99%</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Auth Modal -->
+  <div class="modal-backdrop" id="authModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-labelledby="authModalTitle">
+      <div class="modal-head">
+        <h3 id="authModalTitle">Create your ShieldAuth account</h3>
+        <button class="modal-close" id="closeAuthModal" aria-label="Close">&times;</button>
+      </div>
+      <form id="authForm" class="sim-form">
+        <div class="field">
+          <label for="authEmail">Email or Username</label>
+          <input id="authEmail" class="input" type="text" placeholder="dev@studio.io" required />
+        </div>
+        <div class="field">
+          <label for="authPass">Password</label>
+          <input id="authPass" class="input" type="password" placeholder="••••••••••••" required />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:6px;">
+          Continue to Dashboard
+        </button>
+      </form>
+      <p style="margin-top:14px;font-size:0.78rem;color:var(--text-muted);text-align:center;">
+        Free Tester tier &middot; Supports FIDO2 / YubiKey 2FA.
+      </p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
